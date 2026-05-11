@@ -18,8 +18,16 @@ export class InitProjectInteractor implements InitProjectInputBoundary{
 
     async execute(): Promise<void> {
         try {
+            
             let currPath = await this.fileAccess.getCurrentPath();
             currPath = path.join(currPath, "src")
+
+            // 0. Check if any use_case files have already been initialized
+            if (await this.fileAccess.bfsFindDir(currPath, 'use_case')) {
+                console.error("Please delete all files in src");
+                this.outputData.setOutputData(false);
+                return;
+            }
             
             // 1. Define base paths using path.join for cross-platform support
             const javaPath = path.join(currPath, "main", "java");
