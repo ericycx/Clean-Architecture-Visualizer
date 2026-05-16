@@ -112,8 +112,8 @@ describe("GetRelationsInteractor", () => {
             const targetPath = "src/entities/User.ts";
             const tsReferrer = "src/controller/UserController.ts";
 
-            genericDBAccess.upsertFile({ filePath: targetPath, fileType: "not_java", layer: "entities", node: "node" });
-            genericDBAccess.upsertFile({ filePath: tsReferrer, fileType: "not_java", layer: "interfaceAdapters", node: "node" });
+            genericDBAccess.upsertFile({ filePath: targetPath, fileType: "typescript", layer: "entities", node: "node" });
+            genericDBAccess.upsertFile({ filePath: tsReferrer, fileType: "typescript", layer: "interfaceAdapters", node: "node" });
 
             // Mock getFileImports to return a match for "User"
             jest.spyOn(genericFileAccess, 'getFileImports').mockResolvedValue([
