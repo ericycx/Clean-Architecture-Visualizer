@@ -152,17 +152,19 @@ export class AppBuilder {
     }
 
     runGraphVerification() {
-        this.graphVerificationController?.execute();
+        const formatForCLI = false // run from app
+        this.graphVerificationController?.execute(formatForCLI);
     }
 
     async runCLIGraphVerification() {
         if (!this.graphVerificationOutputData) {
             throw new Error("GraphVerificationOutputData must be built before presenter");
         }
-        this.graphVerificationInteractor?.toggleCommandLine();
+        // this.graphVerificationInteractor?.toggleCommandLine();
         const presenter = new GraphVerificationPresenter(this.graphVerificationOutputData);
-        await this.graphVerificationController?.execute();
-        this.graphVerificationInteractor?.toggleCommandLine(); // set back to not printing to CL
+        const formatForCLI = true // run in terminal
+        await this.graphVerificationController?.execute(formatForCLI);
+        // this.graphVerificationInteractor?.toggleCommandLine(); // set back to not printing to CL
         const data = presenter.getOutputData();
         const lineContent = data[0];
         const lineColour = data[1];
