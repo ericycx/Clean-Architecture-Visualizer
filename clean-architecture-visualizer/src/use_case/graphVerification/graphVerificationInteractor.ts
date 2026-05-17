@@ -44,6 +44,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
     async execute(inputData: GraphVerificationInputData): Promise<void> {
         // restart db
         this.db.resetDB();
+        const formatForCLI = inputData.isToCommandLine()
 
         // main use case logic
         await this.buildFilePaths();
@@ -51,7 +52,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
         await this.developOutNeighbours();
         await this.verifyOutNeighbours();
         await this.populateDatabase();
-        if (inputData.isToCommandLine()) {
+        if (formatForCLI) {
             this.prepareOutput();
         }
     }
