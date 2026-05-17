@@ -7,6 +7,7 @@ import { useCaseGraph } from "../../entity/useCaseGraph.js";
 import type { EdgeStorage, FileStorage, NodeStorage } from "../../types/sessionData.js";
 import type { cleanLayer } from "../../types/cleanLayer.js";
 import { GraphVerificationOutputData } from "./graphVerificationOutputData.js";
+import type { GraphVerificationInputData } from "./graphVerificationInputData.js";
 
 export class GraphVerificationInteractor implements GraphVerificationInputBoundary{
     private readonly internalDirectories = [
@@ -27,7 +28,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
     // The node of files <File Name, Node>
     private readonly externalNodes : Record<string, cleanNode> = {};
 
-    private toCommandLine: boolean = false;
+    // private toCommandLine: boolean = false;
     private outputData: GraphVerificationOutputData;
 
     constructor(
@@ -40,7 +41,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
         this.outputData = outputData;
     }
 
-    async execute(): Promise<void> {
+    async execute(inputData: GraphVerificationInputData): Promise<void> {
         // restart db
         this.db.resetDB();
 
@@ -50,7 +51,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
         await this.developOutNeighbours();
         await this.verifyOutNeighbours();
         await this.populateDatabase();
-        if (this.toCommandLine) {
+        if (inputData.isToCommandLine()) {
             this.prepareOutput();
         }
     }
@@ -409,7 +410,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
         this.outputData.setOutputData(lines, lineColours);
     }
 
-    toggleCommandLine(): void {
-        this.toCommandLine = !this.toCommandLine;
-    }
+    // toggleCommandLine(): void {
+    //     this.toCommandLine = !this.toCommandLine;
+    // }
 }
