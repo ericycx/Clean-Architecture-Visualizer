@@ -2,7 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-const SESSION_FILE = path.join(
+export const SESSION_FILE = path.join(
   os.tmpdir(),
   "clean-arch-cli-session.json"
 );

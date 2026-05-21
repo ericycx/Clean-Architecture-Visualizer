@@ -1,11 +1,7 @@
 import fs from "fs";
-import os from "os";
-import path from "path";
 import { describe, it, expect, beforeEach, afterEach} from '@jest/globals';
-import { SessionDB } from "../../../src/database/sessionDb.js";
+import { SessionDB, SESSION_FILE } from "../../../src/database/sessionDb.js";
 import type { SessionData } from "../../../src/types/sessionData.js";
-
-const SESSION_FILE = path.join(os.tmpdir(), "clean-arch-cli-session.json");
 
 describe("SessionDB", () => {
     let db: SessionDB<SessionData>;
