@@ -27,7 +27,9 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
     private readonly externalFilePaths = new Map<string, string>();
 
     // The node of files <File Name, Node>
-    private readonly externalNodes : Record<string, cleanNode> = {};
+    private readonly externalNodes: Record<string, cleanNode> = {};
+
+    private crossUseCaseEdges: Array<[cleanNode, cleanNode]>[] = [];
     private outputData: GraphVerificationOutputData;
 
     constructor(
@@ -91,7 +93,15 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
      */
     private async developOutNeighbours(): Promise<void> {
 
+        const externalFileNames = [...this.externalFilePaths.keys()].map(name => name.split('.').at(0) ?? '');
+
+        let useCaseIndex = 0;
         for (const graph of this.useCaseGraphList) {
+            this.crossUseCaseEdges.push([]);
+            // Get a list of formatted file names in this use case.
+            const useCaseFiles = [...graph.getFiles().keys()].map(name => 
+                name.split('.').at(0) ?? '');
+
             for (const [fileName, filePath] of graph.getFiles()) {
                 const fromNode = this.resolveNode(filePath);
                 if (!fromNode) continue;
@@ -100,10 +110,21 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
                 for (const importPath of imports) {
                     const toNode = this.resolveImportToNode(this.internalFilePaths, importPath) ?? this.resolveImportToNode(this.externalFilePaths, importPath);
                     if (toNode) {
-                        graph.setNodeNeighbour(fromNode, toNode);
+                        let importFileName = importPath.split("/").at(-1) ?? '';
+                        importFileName = importFileName.split(".").at(0) ?? '';
+                        
+                        //Check if the imported file is an external file path
+                        if (!useCaseFiles.includes(importFileName)
+                            && !externalFileNames.includes(importFileName)) {
+                            this.crossUseCaseEdges[useCaseIndex].push([fromNode, toNode]);
+                        }
+                        else {
+                            graph.setNodeNeighbour(fromNode, toNode);
+                        }
                     }
                 }
             }
+            useCaseIndex++;
         }
 
         for (const [fileName, filePath] of this.externalFilePaths) {
@@ -405,21 +426,30 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
         const lines: string[] = [];
         const lineColours: boolean[] = [];
 
+        let useCaseIndex = 0;
         for (const graph of this.useCaseGraphList) {
             const violations = graph.getViolationEdges();
-            const hasViolations = violations.length > 0;
+            const hasViolations = violations.length > 0 || this.crossUseCaseEdges[useCaseIndex].length > 0;
             const prefix = hasViolations ? "✗" : "✓";
 
             lines.push(`${prefix} ${graph.getName()}`);
             lineColours.push(!hasViolations);
 
             if (hasViolations) {
+                for (const [from, to] of this.crossUseCaseEdges[useCaseIndex]) {
+                    lines.push(`    ${from} → ${to} (external)`);
+                    lineColours.push(false);
+                }
                 for (const [from, to] of violations) {
                     lines.push(`    ${from} → ${to}`);
                     lineColours.push(false);
                 }
             }
+            useCaseIndex++;
         }
         this.outputData.setOutputData(lines, lineColours);
+    }
+    getCrossUseCaseEdges(): Array<[cleanNode, cleanNode]>[] {
+        return structuredClone(this.crossUseCaseEdges);
     }
 }
