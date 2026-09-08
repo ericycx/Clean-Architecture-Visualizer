@@ -1,21 +1,23 @@
-import type { FileAccessInterface } from '../../data_access/fileAccessInterface.js';
 import type { CleanArchInfoAccessInterface } from '../../data_access/cleanArchInfoAccessInterface.js';
+import type { FileAccessInterface } from '../../data_access/fileAccessInterface.js';
 import type { SessionDBAccessInterface } from '../../data_access/sessionDBAccessInterface.js';
-import type { GraphVerificationInputBoundary } from './graphVerificationInputBoundary.js';
-import type { cleanNode } from '../../types/cleanNode.js';
 import { useCaseGraph } from '../../entity/useCaseGraph.js';
+import type { cleanLayer } from '../../types/cleanLayer.js';
+import type { cleanNode } from '../../types/cleanNode.js';
 import type {
   EdgeStorage,
   FileStorage,
   NodeStorage,
 } from '../../types/sessionData.js';
-import type { cleanLayer } from '../../types/cleanLayer.js';
-import { GraphVerificationOutputData } from './graphVerificationOutputData.js';
+import type { GraphVerificationInputBoundary } from './graphVerificationInputBoundary.js';
 import { GraphVerificationInputData } from './graphVerificationInputData.js';
 import type { GraphVerificationOutputBoundary } from './graphVerificationOutputBoundary.js';
 import type { RelationshipType } from '../../types/relationship.js';
+import { GraphVerificationOutputData } from './graphVerificationOutputData.js';
 
-export class GraphVerificationInteractor implements GraphVerificationInputBoundary {
+export class GraphVerificationInteractor
+  implements GraphVerificationInputBoundary
+{
   private readonly internalDirectories = ['use_case', 'interface_adapter'];
   private readonly externalDirectories = [
     'entity',
@@ -120,17 +122,17 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
     );
 
     // Maps external files to the names of the use case graphs they belong to
-    let externalFilesToUseCaseGraphs = new Map<string, Set<string>>();
+    const externalFilesToUseCaseGraphs = new Map<string, Set<string>>();
     // Map external file paths to their representative (default is themselves)
-    let externalFileRepresentative = new Map<string, string>();
-    [...this.externalFilePaths.values()].map((filePath) => {
+    const externalFileRepresentative = new Map<string, string>();
+    for (const filePath of this.externalFilePaths.values()) {
       externalFileRepresentative.set(filePath, filePath);
       externalFilesToUseCaseGraphs.set(filePath, new Set<string>());
-    });
+    }
     // allEdges will store all of the edges in the form of (fromNodePath, toNodePath)
-    let allEdges: string[][] = [];
+    const allEdges: string[][] = [];
     // map use case graph names to graphs
-    let useCaseGraphNamesToGraph = new Map<string, useCaseGraph>();
+    const useCaseGraphNamesToGraph = new Map<string, useCaseGraph>();
     let useCaseIndex = 0;
     for (const graph of this.useCaseGraphList) {
       this.crossUseCaseEdges.push([]);
@@ -199,12 +201,12 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
       // Get all use case graphs that import this file, add them to externalFilePathToUseCaseGraphs
       // We only set neighbour if it is an internal file and both paths resolve to clean nodes
       // There is probably room to optimize since we iterate #graphs * #imports * #internal_files
-      this.useCaseGraphList.map((graph) => {
+      for (const graph of this.useCaseGraphList) {
         useCaseGraphNamesToGraph.set(graph.getName(), graph);
         // Want to add all external files to all use case graphs
         graph.addFile(fileName, filePath);
-        imports.map((importPath) =>
-          [...graph.getFiles().keys()].map((targetFileName) => {
+        for (const importPath of imports) {
+          for (const targetFileName of graph.getFiles().keys()) {
             const base = targetFileName.toLowerCase().replace(/\.[^.]+$/, '');
             const res = importPath.fileName.toLowerCase().includes(base);
             if (res) {
@@ -229,9 +231,9 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
                   ?.add(graph.getName());
               }
             }
-          })
-        );
-      });
+          }
+        }
+      }
 
       // Add all edges to allEdges as long as it resolves to a node and the import is not an
       // internal file in CA and unite them.
@@ -263,7 +265,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
         );
       });
     }
-    allEdges.map(([fromNodePath, toNodePath]) => {
+    for (const [fromNodePath, toNodePath] of allEdges) {
       if (
         toNodePath &&
         this.internalFilePaths.has(toNodePath.split('/').at(-1) ?? '')
@@ -277,9 +279,9 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
 
       const fromNode = this.resolveNode(fromNodePath);
       const toNode = this.resolveNode(toNodePath);
-      [
-        ...(externalFilesToUseCaseGraphs.get(fromNodePathRep) as Set<string>),
-      ].map((useCaseGraphName) => {
+      for (const useCaseGraphName of externalFilesToUseCaseGraphs.get(
+        fromNodePathRep
+      ) as Set<string>) {
         const currGraph = useCaseGraphNamesToGraph.get(useCaseGraphName);
         currGraph?.addFile(fromNodePath.split('/').at(-1) ?? '', fromNodePath);
         currGraph?.addFile(toNodePath.split('/').at(-1) ?? '', toNodePath);
@@ -306,7 +308,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
     externalFilePathToUseCaseGraphs: Map<string, Set<string>>
   ): string {
     if (
-      externalFilePath == externalFilePathRepresentatives.get(externalFilePath)
+      externalFilePath === externalFilePathRepresentatives.get(externalFilePath)
     ) {
       return externalFilePath;
     }
@@ -355,7 +357,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
       externalFilePathRepresentatives,
       externalFilePathsToUseCaseGraphs
     );
-    if (rep1 != rep2) {
+    if (rep1 !== rep2) {
       externalFilePathRepresentatives.set(rep1, rep2);
       const rep1Graphs =
         externalFilePathsToUseCaseGraphs.get(rep1) ?? new Set<string>();
@@ -530,18 +532,18 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
 
     // Go over every use case graph and every one of its files
     // Add it to the list of nodes
-    this.useCaseGraphList.map((uc) => {
+    for (const uc of this.useCaseGraphList) {
       // Get all violation nodes
       // There shouldn't be any violation nodes missing since violation nodes are
       // derived from violation edges and violation edges come from edges between
       // nodes that exist in and belong to the graph
       const violationNodes = new Set<cleanNode>();
-      uc.getViolationEdges().map(([from, to]) => {
+      for (const [from, to] of uc.getViolationEdges()) {
         violationNodes.add(from);
         violationNodes.add(to);
-      });
+      }
       const nodeTypesSeen = new Set<cleanNode>();
-      [...uc.getFiles().values()].map((filePath) => {
+      for (const filePath of uc.getFiles().values()) {
         const nodeType = this.resolveNode(filePath);
         nodeTypesSeen.add(nodeType as cleanNode);
         seenIds.add(filePath);
@@ -560,7 +562,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
               ? 'VIOLATION'
               : 'VALID',
         });
-      });
+      }
 
       // Make a node storage for all missing nodes
       // Missing nodes aren't imported and don't import anything
@@ -568,7 +570,7 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
       // In this case, a missing node is one that just doesn't appear at all.
       // If a file has no imports/is not imported, it will appear, just have no edges
       // Consider the idea that if a node has no imports/is not imported, mark it as a violation
-      uc.getMissingNodes().map((missingNode) => {
+      for (const missingNode of uc.getMissingNodes()) {
         if (!nodeTypesSeen.has(missingNode)) {
           result.push({
             id: `missing-${missingNode}-${uc.getName()}`,
@@ -577,8 +579,8 @@ export class GraphVerificationInteractor implements GraphVerificationInputBounda
             status: 'MISSING',
           });
         }
-      });
-    });
+      }
+    }
 
     // This is what happens if a file exists, but is not linked to a use case
     // seenIds contain the file paths. If we have seen a filePath, it must belong

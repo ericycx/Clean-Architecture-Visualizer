@@ -1,22 +1,22 @@
 import {
-  describe,
-  it,
-  expect,
   afterEach,
-  jest,
   beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
 } from '@jest/globals';
-import { GraphVerificationInteractor } from '../../../src/use_case/graphVerification/graphVerificationInteractor.js';
-import { GraphVerificationPresenter } from '../../../src/interface_adapter/graphVerification/graphVerificationPresenter.js';
-import { GraphVerificationOutputData } from '../../../src/use_case/graphVerification/graphVerificationOutputData.js';
+import { CleanArchAccess } from '../../../src/data_access/cleanArchInfoAccess.js';
 import { FileAccess } from '../../../src/data_access/fileAccess.js';
 import type { FileAccessInterface } from '../../../src/data_access/fileAccessInterface.js';
-import { CleanArchAccess } from '../../../src/data_access/cleanArchInfoAccess.js';
 import { SessionDBAccess } from '../../../src/data_access/sessionDBAccess.js';
-
 import { useCaseGraph } from '../../../src/entity/useCaseGraph.js';
 import type { cleanNode } from '../../../src/types/cleanNode.js';
 import type { Relationship } from '../../../src/types/relationship.js';
+import { GraphVerificationPresenter } from '../../../src/interface_adapter/graphVerification/graphVerificationPresenter.js';
+import type { cleanNode } from '../../../src/types/cleanNode.ts';
+import { GraphVerificationInteractor } from '../../../src/use_case/graphVerification/graphVerificationInteractor.js';
+import { GraphVerificationOutputData } from '../../../src/use_case/graphVerification/graphVerificationOutputData.js';
 
 const genericFileAccess = new FileAccess();
 const genericNeighbourAccess = new CleanArchAccess();
@@ -26,13 +26,13 @@ const presenter = new GraphVerificationPresenter(
 );
 
 function makeUseCaseGraphs(types: string[]): useCaseGraph[] {
-  let useCaseGraphs: useCaseGraph[] = [];
+  const useCaseGraphs: useCaseGraph[] = [];
   types.forEach((type) => {
     switch (type) {
       case 'empty':
         useCaseGraphs.push(new useCaseGraph('empty'));
         break;
-      case 'good':
+      case 'good': {
         const goodUseCase = new useCaseGraph('good');
         goodUseCase.setNodeNeighbour('useCaseInteractor', 'entities');
         goodUseCase.setNodeNeighbour('dataAccess', 'database');
@@ -40,7 +40,8 @@ function makeUseCaseGraphs(types: string[]): useCaseGraph[] {
         goodUseCase.setNodeNeighbour('view', 'controller');
         useCaseGraphs.push(goodUseCase);
         break;
-      case 'single':
+      }
+      case 'single': {
         const singleViolation = new useCaseGraph('single');
         singleViolation.addFile('view', 'root/src/views/view.java');
         singleViolation.addFile('viewModel', 'root/src/views/viewModel.java');
@@ -49,12 +50,14 @@ function makeUseCaseGraphs(types: string[]): useCaseGraph[] {
         singleViolation.setNodeNeighbour('view', 'entities');
         useCaseGraphs.push(singleViolation);
         break;
-      case 'multiple':
+      }
+      case 'multiple': {
         const multipleViolations = new useCaseGraph('multiple');
         multipleViolations.setNodeNeighbour('entities', 'view');
         multipleViolations.setNodeNeighbour('controller', 'entities');
         useCaseGraphs.push(multipleViolations);
         break;
+      }
     }
   });
   return useCaseGraphs;
@@ -642,7 +645,7 @@ describe('Ensures buildFilePaths returns all files in correct maps.', () => {
         buildFiles(['root/src/data_access/data_access.java'], map)
       )
       .mockImplementationOnce(async (_, map) => buildFiles([], map));
-    let expectedInternalMap = new Map<string, string>();
+    const expectedInternalMap = new Map<string, string>();
     expectedInternalMap.set(
       'usecase1Controller.java',
       'root/src/features/feature1/usecase1/interface_adapter/usecase1Controller.java'
@@ -652,14 +655,14 @@ describe('Ensures buildFilePaths returns all files in correct maps.', () => {
       'root/src/features/feature1/usecase1/use_case/usecase1InputData.java'
     );
 
-    let expectedExternalMap = new Map<string, string>();
+    const expectedExternalMap = new Map<string, string>();
     expectedExternalMap.set('entity.java', 'root/src/entity/entity.java');
     expectedExternalMap.set(
       'data_access.java',
       'root/src/data_access/data_access.java'
     );
 
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -706,7 +709,7 @@ describe('Ensures buildFilePaths returns all files in correct maps.', () => {
       .mockImplementationOnce(async (_, map) =>
         buildFiles(['root/src/database.java'], map)
       );
-    let expectedInternalMap = new Map<string, string>();
+    const expectedInternalMap = new Map<string, string>();
     expectedInternalMap.set(
       'usecase1InputData.java',
       'root/src/use_case/usecase1/usecase1InputData.java'
@@ -736,7 +739,7 @@ describe('Ensures buildFilePaths returns all files in correct maps.', () => {
       'root/src/interface_adapter/usecase2/usecase2Presenter.java'
     );
 
-    let expectedExternalMap = new Map<string, string>();
+    const expectedExternalMap = new Map<string, string>();
     expectedExternalMap.set('entity.java', 'root/src/entity/entity.java');
     expectedExternalMap.set(
       'data_access.java',
@@ -745,7 +748,7 @@ describe('Ensures buildFilePaths returns all files in correct maps.', () => {
     expectedExternalMap.set('database.java', 'root/src/database.java');
     expectedExternalMap.set('view.java', 'root/src/views/view.java');
 
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -772,7 +775,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns imports of external use case files to the correct use case when packaging by layer.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -893,7 +896,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns imports of external use case files to the correct use case when packaging by component.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -1014,7 +1017,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns the origin of cross use case edge as violation, but not the imported file when packaging by layer.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -1131,7 +1134,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns the origin of cross use case edge as violation, but not the imported file when packaging by component.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -1248,7 +1251,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns internal files that import external ones to the correct use case (along with the external files) when packaging by layer.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -1369,7 +1372,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns internal files that import external ones to the correct use case (along with the external files) when packaging by component.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -1490,7 +1493,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns nodes to the correct status when packaging by layer.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -1674,7 +1677,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns nodes to the correct status when packaging by component.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,
@@ -1858,7 +1861,7 @@ describe('Ensures developOutNeighbours maps the files to all of the use cases th
   });
 
   it('Assigns nodes to the correct status when packaging by component and imports have different format.', async () => {
-    let interactor = new GraphVerificationInteractor(
+    const interactor = new GraphVerificationInteractor(
       mockFileAccess,
       genericNeighbourAccess,
       genericDBAccess,

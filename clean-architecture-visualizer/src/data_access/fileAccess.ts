@@ -1,6 +1,6 @@
-import fs from 'fs/promises';
-import path from 'path';
-
+import type { Dirent } from 'node:fs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import type { FileAccessInterface } from './fileAccessInterface.js';
 import type { Relationship, RelationshipType } from '../types/relationship.js';
 
@@ -113,7 +113,7 @@ export class FileAccess implements FileAccessInterface {
       if (visited.has(currentPath)) continue;
       visited.add(currentPath);
 
-      let entries;
+      let entries: Dirent[];
       try {
         entries = await fs.readdir(currentPath, { withFileTypes: true });
       } catch {
@@ -254,7 +254,7 @@ export class FileAccess implements FileAccessInterface {
         result.push({ fileName: name, relationshipType: type });
       }
     } catch {
-      console.log('The file: ' + filePath + ' could not be found');
+      console.log(`The file: ${filePath} could not be found`);
       return [];
     }
     return result;
@@ -316,7 +316,7 @@ export class FileAccess implements FileAccessInterface {
       });
       return fileContent;
     } catch {
-      console.log('The file: ' + filePath + ' could not be found');
+      console.log(`The file: ${filePath} could not be found`);
       return '';
     }
   }
